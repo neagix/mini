@@ -30,7 +30,8 @@ Copyright (C) 2009		John Kelley <wiidev@kelley.ca>
 #include "boot2.h"
 #include "git_version.h"
 
-#define PPC_BOOT_FILE "/bootmii/ppcboot.elf"
+#define LINUX_ELF_FILE       "/wiilinux/zImage"
+#define BOOTMII_GUI_ELF_FILE "/bootmii/gui.elf"
 
 FATFS fatfs;
 
@@ -90,14 +91,20 @@ u32 _main(void *base)
 		panic2(0, PANIC_MOUNT);
 	}
 
-	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
-
-	res = powerpc_boot_file(PPC_BOOT_FILE);
+	gecko_printf("Trying to boot:" LINUX_ELF_FILE "\n");
+	
+	res = powerpc_boot_file(LINUX_ELF_FILE);
 	if(res < 0) {
-		gecko_printf("Failed to boot PPC: %d\n", res);
-		gecko_printf("Booting System Menu\n");
-		vector = boot2_run(1, 2);
-		goto shutdown;
+		gecko_printf("Failed to boot PPC %s: %d\n", LINUX_ELF_FILE, res);
+
+		gecko_printf("Trying to boot:" BOOTMII_GUI_ELF_FILE "\n");
+		res = powerpc_boot_file(BOOTMII_GUI_ELF_FILE);
+		if(res < 0) {
+			gecko_printf("Failed to boot PPC %s: %d\n", BOOTMII_GUI_ELF_FILE, res);
+			gecko_printf("Booting System Menu\n");
+			vector = boot2_run(1, 2);
+			goto shutdown;
+		}
 	}
 
 	gecko_printf("Going into IPC mainloop...\n");
